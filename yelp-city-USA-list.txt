@@ -1,0 +1,157 @@
+Phoenix:AZ
+Scottsdale:AZ
+Tempe:AZ
+Tucson:AZ
+Alameda:CA
+Albany:CA
+Alhambra:CA
+Anaheim:CA
+Belmont:CA
+Berkeley:CA
+Beverly Hills:CA
+Big Sur:CA
+Burbank:CA
+Concord:CA
+Costa Mesa:CA
+Culver City:CA
+Cupertino:CA
+Daly City:CA
+Davis:CA
+Dublin:CA
+Emeryville:CA
+Foster City:CA
+Fremont:CA
+Glendale:CA
+Hayward:CA
+Healdsburg:CA
+Huntington Beach:CA
+Irvine:CA
+La Jolla:CA
+Livermore:CA
+Long Beach:CA
+Los Altos:CA
+Los Angeles:CA
+Los Gatos:CA
+Marina del Rey:CA
+Menlo Park:CA
+Mill Valley:CA
+Millbrae:CA
+Milpitas:CA
+Monterey:CA
+Mountain View:CA
+Napa:CA
+Newark:CA
+Newport Beach:CA
+Oakland:CA
+Orange County:CA
+Palo Alto:CA
+Park La Brea:CA
+Pasadena:CA
+Pleasanton:CA
+Redondo Beach:CA
+Redwood City:CA
+Sacramento:CA
+San Bruno:CA
+San Carlos:CA
+San Diego:CA
+San Francisco:CA
+San Jose:CA
+San Leandro:CA
+San Mateo:CA
+San Rafael:CA
+Santa Barbara:CA
+Santa Clara:CA
+Santa Cruz:CA
+Santa Monica:CA
+Santa Rosa:CA
+Sausalito:CA
+Sonoma:CA
+South Lake Tahoe:CA
+Stockton:CA
+Studio City:CA
+Sunnyvale:CA
+Torrance:CA
+Union City:CA
+Venice:CA
+Walnut Creek:CA
+West Hollywood:CA
+West Los Angeles:CA
+Westwood:CA
+Yountville:CA
+Boulder:CO
+Denver:CO
+Hartford:CT
+New Haven:CT
+Washington:DC
+Fort Lauderdale:FL
+Gainesville:FL
+Miami:FL
+Miami Beach:FL
+Orlando:FL
+Tampa:FL
+Atlanta:GA
+Savannah:GA
+Honolulu:HI
+Lahaina:HI
+Iowa City:IA
+Boise:ID
+Chicago:IL
+Evanston:IL
+Naperville:IL
+Schaumburg:IL
+Skokie:IL
+Bloomington:IN
+Indianapolis:IN
+Louisville:KY
+New Orleans:LA
+Allston:MA
+Boston:MA
+Brighton:MA
+Brookline:MA
+Cambridge:MA
+Somerville:MA
+Baltimore:MD
+Ann Arbor:MI
+Detroit:MI
+Minneapolis:MN
+Saint Paul:MN
+Kansas City:MO
+Saint Louis:MO
+Charlotte:NC
+Durham:NC
+Raleigh:NC
+Newark:NJ
+Princeton:NJ
+Albuquerque:NM
+Santa Fe:NM
+Las Vegas:NV
+Reno:NV
+Brooklyn:NY
+Long Island City:NY
+New York:NY
+Flushing:NY
+Cincinnati:OH
+Cleveland:OH
+Columbus:OH
+Portland:OR
+Salem:OR
+Philadelphia:PA
+Pittsburgh:PA
+Providence:RI
+Charleston:SC
+Memphis:TN
+Nashville:TN
+Austin:TX
+Dallas:TX
+Houston:TX
+San Antonio:TX
+Salt Lake City:UT
+Alexandria:VA
+Arlington:VA
+Richmond:VA
+Burlington:VT
+Bellevue:WA
+Redmond:WA
+Seattle:WA
+Madison:WI
+Milwaukee:WI
