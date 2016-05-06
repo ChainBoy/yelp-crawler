@@ -8,17 +8,25 @@
 import re
 import os
 import sys
+import socket
 from datetime import datetime
 
+from multiprocessing import Process, cpu_count, Pool, freeze_support, Queue
+# from multiprocessing import Pool
 
 import requests
 import threadpool
 from fuzzywuzzy import fuzz
+from pymongo import MongoClient
 from pyquery import PyQuery as pq
-from multiprocessing import Process, cpu_count
-# from multiprocessing import Pool
 from pyzipcode import ZipCodeDatabase as ZipDB
 
+
+from proxy_manager import get_proxy_manager
+
+LOCATION = "all"
+LOCATION = "28202"
+TASK_NAME = "test"
 
 SEARCH_URL = "http://www.yelp.com/search"
 COMMENT_URL = "http://www.yelp.com/biz/"
@@ -27,33 +35,53 @@ FUZZ_SAME_RATIO = 10
 THREAD_COUNT = cpu_count() * 2
 
 
+MONGO_CLIENT = None
+
+
 # Yelp crawler object - process
 class YelpCrawler(Process):
 
-    def __init__(self, search_word, location, job_id, mongo_client=None, matching=True, process_pool=None):
+    def __init__(self, search_word, location, job_id, mongo_client=None, matching=True, thread_pool=None, crawler_category=False):
+        """if crawler_all is True, search_word mean is category(cflt).
+        if location is all, will search all USA location.
+        """
         Process.__init__(self)
 
         # setting object parameters
         self._search_word = search_word
         self._matching = matching
         self._job_id = job_id
-        self._process_pool = process_pool
+        self.threadpool = threadpool
 
+        if type(thread_pool) == int:
+            thread_pool = self.threadpool.ThreadPool(thread_pool)
+        self._thread_pool = thread_pool
+
+        if not mongo_client:
+            mongo_client = get_mongo_client()
         self._mongo_client = mongo_client
+
+        self._crawler_category = crawler_category
+
         self._zip_codes = self._get_zipcode_list(location)
         print "search city list: %s" % " | ".join(self._zip_codes)
 
         self.store_id_set = set()
+        self._proxy_manager = get_proxy_manager()
 
     def run(self):
         for location in self._zip_codes:
-            if self._process_pool:
-                # self._process_pool.apply_async(self._search_loction, (location,))
+            if self._thread_pool:
+                # self._thread_pool.apply_async(self._search_loction, (location,))
                 self._join_thread(self._search_loction, (location,))
             else:
                 self._search_loction(location)
+        self._thread_pool.wait()
 
     def _get_zipcode_list(self, location):
+        if location.lower() == "all":
+            with file("yelp-city-USA-list.txt")as f:
+                return f.read().split()
         zip_db = ZipDB()
         if re.findall(r'[0-9,]+', location):
             zips = location.split(',')
@@ -70,11 +98,13 @@ class YelpCrawler(Process):
         return list(set(["%s,%s" % (zip_db[i].city, zip_db[i].state) for i in zips]))
 
     def _search_loction(self, location):
-        print "search location: %s" % location
+        print "===============> search location: %s" % location
 
-        parameters = {"find_desc": self._search_word,
+        parameters = {"find_desc" if not self._crawler_category else "cflt": self._search_word,
                       "start": 0,
                       "find_loc": location}
+        print parameters
+
         while True:
             res = self._download(SEARCH_URL, params=parameters)
             if not res or res.status_code != 200:
@@ -83,8 +113,8 @@ class YelpCrawler(Process):
             store_id_list = self._get_store_ids(res.content.decode("utf8"))
             for store_id in store_id_list:
                 # self._process_store_id(store_id)
-                if self._process_pool:
-                    # self._process_pool.apply_async(self._process_store_id, (store_id,))
+                if self._thread_pool:
+                    # self._thread_pool.apply_async(self._process_store_id, (store_id,))
                     self._join_thread(self._process_store_id,
                                       ([store_id, location], ))
                 else:
@@ -197,15 +227,27 @@ class YelpCrawler(Process):
         return True
 
     def _join_thread(self, fun, params):
-        for req in threadpool.makeRequests(fun, params):
-            self._process_pool.putRequest(req)
+        print "join thread: %s %s" % (fun, params)
+        for req in self.threadpool.makeRequests(fun, params):
+            self._thread_pool.putRequest(req)
 
     def _download(self, url, params, try_num=5, timeout=30, *args, **kwargs):
         while try_num:
             try:
-                res = requests.get(url, params=params, *args, **kwargs)
+                proxy = self._proxy_manager.get()
+                if not proxy:
+                    proxies = None
+                else:
+                    proxies={"http": "http://"+proxy}
+                res = requests.get(url, params=params, proxies=proxies, timeout=timeout, *args, **kwargs)
+                if res.status_code in (503, 404, 403):
+                    print "[!%s]proxy download proxy: %s, url: %s" % (res.status_code, proxy, url)
+                    with file(str(res.status_code) + ".html", "w")as f:
+                        f.write(res.content)
+                    self._proxy_manager.remove(proxy)
+                    continue
                 return res
-            except requests.exceptions, e:
+            except (requests.exceptions, socket.timeout), e:
                 print "[%s]Download error: %s, url: %s" % (try_num, url, e)
                 try_num -= 1
         return None
@@ -246,6 +288,50 @@ class YelpCrawler(Process):
                         review_data[k] = review_data[k].encode('utf8', errors="ignore")
                     csv_wf.writerow(review_data)
 
+def _search_by_category(task_queue, location="CA", task_name="test", dump_file=False):
+    print "task_queue", task_queue
+    print "location", location
+    print "task_name", task_name
+    print "dump_file", dump_file
+
+    while not task_queue.empty():
+        category = task_queue.get()
+        yelp_crawler = YelpCrawler(category, location, task_name, mongo_client=None, thread_pool=THREAD_COUNT, crawler_category=True, matching=False)
+        yelp_crawler.run()
+        if dump_file:
+            yelp_crawler.write_csv()
+    return True
+
+def get_mongo_client():
+    client = MongoClient('127.0.0.1')
+    return client
+
+def search_by_category(location, task_name, dump_file=False):
+    process_pool = Pool(processes=1)
+
+    category_queue = Queue()
+    with file("yelp-category-level2.txt")as f:
+        for i in f.read().split():
+            category_queue.put(i)
+
+    process_list = []
+    for i in range(cpu_count()):
+        process_list.append(Process(target=_search_by_category, args=(category_queue, location, task_name, dump_file)))
+    for i in process_list:
+        i.start()
+    for i in process_list:
+        i.join()
+
+
+def search_by_normal(location, task_name="test", mongo_client=None, dump_file=False):
+    mongo_client = mongo_client if mongo_client else get_mongo_client()
+    thread_pool = threadpool.ThreadPool(THREAD_COUNT)
+    yelp_crawler = YelpCrawler("mcdonalds", location, task_name, mongo_client=mongo_client, thread_pool=thread_pool)
+    yelp_crawler.run()
+    thread_pool.wait()
+    if dump_file:
+        yelp_crawler.write_csv()
+
 if __name__ == "__main__":
 
     """ Crawler takes
@@ -254,35 +340,25 @@ if __name__ == "__main__":
         str         job_id = used by signals, passed in to attached all store_id's for csv rebuild
         MongoClient mongo_client = client used to insert reviews
     """
+    freeze_support()
 
     dump_file = True if "-d" in sys.argv else False
+    search_all = True if "--all" in sys.argv else False
 
-    from pymongo import MongoClient
 
-    client = MongoClient('127.0.0.1')
-    # client = MongoClient('192.168.0.4')
-
-    # process_pool = Pool(processes=1)
-    process_pool = threadpool.ThreadPool(THREAD_COUNT)
+    if search_all:
+        search_by_category(LOCATION, TASK_NAME, dump_file=dump_file)
+    else:
+        client = get_mongo_client()
+        search_by_normal(LOCATION, TASK_NAME, mongo_client=client, dump_file=dump_file)
 
     # yelp_crawler = YelpCrawler("mcdonalds", 'CA', 'test', mongo_client=client)
-    # yelp_crawler = YelpCrawler("mcdonalds", 'CA', 'test', mongo_client=client, process_pool=process_pool)
+    # yelp_crawler = YelpCrawler("mcdonalds", 'CA', 'test', mongo_client=client, thread_pool=thread_pool)
 
-    yelp_crawler = YelpCrawler(
-        "mcdonalds", '28202', 'test', mongo_client=client, process_pool=process_pool)
-    # yelp_crawler = YelpCrawler("mcdonalds", 'Charlotte', 'test', mongo_client=client, process_pool=process_pool)
-    yelp_crawler.run()
-    process_pool.wait()
-    if dump_file:
-        yelp_crawler.write_csv()
-
-    # for i in store:
-    #     yelp_crawler.store_id_set.add(i)
-    #     yelp_crawler.process_id(i)
-
-    # yelp_crawler.write_csv()
-    # yelp_crawler.process_id('peets-coffee-and-tea-seattle')
-
-    # # YC3 = YelpCrawler('mcdonalds', 'NC')
-
+    # yelp_crawler = YelpCrawler(
+    #     "mcdonalds", '28202', 'test', mongo_client=client, thread_pool=thread_pool)
+    # # yelp_crawler = YelpCrawler("mcdonalds", 'Charlotte', 'test', mongo_client=client, thread_pool=thread_pool)
     # yelp_crawler.run()
+    # thread_pool.wait()
+    # if dump_file:
+    #     yelp_crawler.write_csv()
