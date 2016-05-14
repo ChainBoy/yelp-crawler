@@ -1,0 +1,168 @@
+suggest: super(ApiRequest.RequestType.GET, "suggest", paramHttpClient, paramContext, paramSuggestRequestCallback, paramLocation);
+
+review: super(ApiRequest.RequestType.GET, "reviews", paramHttpClient, paramReviewCallback);
+
+
+
+  protected ReviewListRequest(String paramString, int paramInt1, int paramInt2, Locale paramLocale, HttpClient paramHttpClient, ReviewCallback paramReviewCallback)
+  {
+    super(ApiRequest.RequestType.GET, "reviews", paramHttpClient, paramReviewCallback);
+    addUrlParam("business_id", paramString);
+    addUrlParam("limit", paramInt2);
+    addUrlParam("offset", paramInt1);
+    addUrlParam("lang", paramLocale.getLanguage());
+    this.mLocale = paramLocale;
+  }
+
+
+
+
+
+    public SearchSuggestRequest(String paramString, Location paramLocation, HttpClient paramHttpClient, Context paramContext, SuggestRequest.SuggestRequestCallback paramSuggestRequestCallback)
+  {
+    super(ApiRequest.RequestType.GET, "suggest", paramHttpClient, paramContext, paramSuggestRequestCallback, paramLocation);
+    addUrlParam("term", paramString);
+    this.mPrefix = paramString;
+  }
+
+
+
+
+
+    private ReviewListRequest loadReview(String paramString)
+  {
+    ReviewListRequest localReviewListRequest = new ReviewListRequest(mBusinessId, 0, 1, "EN_US", this);
+    localReviewListRequest.setSpecificReview(paramString);
+    localReviewListRequest.execute(new String[0]);
+    return localReviewListRequest;
+  }
+
+
+
+sYwsid = decode("==wdk1ybXdVVQhHSD1meyEGTiJlMtFzU");
+sSecret = decode("==wNjVSKmd2OpcjSTZWMksXVJ1yIFF2IsgGV");
+
+
+
+app_version=3.8.4
+cc=US
+lang=en
+
+
+
+UserAgentString = String.format("Version/1 Yelp/v%s Carrier/%s Model/%s OSBuild/%s Android/%s", scrubVars(arrayOfString));
+
+arrayOfString[0] = BaseYelpApplication.getAppVersion(this.mContext);
+arrayOfString[1] = this.mNetworkOperatorName;
+arrayOfString[2] = Build.DEVICE;
+arrayOfString[3] = Build.ID;
+arrayOfString[4] = Build.VERSION.RELEASE;
+
+Version/1 Yelp/v3.8.4 Carrier/%E4%B8%AD%E5%9B%BD%E7%A7%BB%E5%8A%A8 Model/HWNXT OSBuild/HUAWEINXT-AL10 Android/6.0
+
+
+
+  static CookieStore getCookieStore(Context paramContext)
+  {
+    ApplicationSettingsBase localApplicationSettingsBase = new ApplicationSettingsBase(paramContext);
+    byte[] arrayOfByte = localApplicationSettingsBase.getSecretKey("cookies");
+    if (arrayOfByte == null);
+    while (true)
+    {
+      try
+      {
+        KeyGenerator localKeyGenerator = KeyGenerator.getInstance("AES");
+        localKeyGenerator.init(256);
+        localObject = localKeyGenerator.generateKey();
+        localApplicationSettingsBase.updateSecretKey("cookies", ((SecretKey)localObject).getEncoded());
+        return new PersistingCookieStore(paramContext.getDir("cookies", 0), (SecretKey)localObject, new ExceptionHandler(null, BaseYelpApplication.getAppVersion(paramContext), "stacktraces", false));
+      }
+      catch (NoSuchAlgorithmException localNoSuchAlgorithmException)
+      {
+        Log.e(TAG, "AES DOES NOT EXIST!", localNoSuchAlgorithmException);
+        return new BasicCookieStore();
+      }
+      Object localObject = new SecretKeySpec(arrayOfByte, "AES");
+    }
+  }
+
+
+getDeviceProfileForWebServices() == DeviceProfileMap
+this.mAndroidId = getDeviceId(Settings.Secure.getString(paramContext.getContentResolver(), "android_id"));
+String str = Build.BRAND + "+" + Build.DEVICE + "/" + Build.ID;
+
+buildDeviceInfoBlockForWebServices.put("ywsid", paramString);
+buildDeviceInfoBlockForWebServices.put("device", this.mAndroidId);
+buildDeviceInfoBlockForWebServices.put("device_type", str);
+buildDeviceInfoBlockForWebServices.put("app_version", BaseYelpApplication.getAppVersion(this.mContext));
+buildDeviceInfoBlockForWebServices.put("cc", paramLocale.getCountry());
+buildDeviceInfoBlockForWebServices.put("lang", paramLocale.getLanguage());
+
+
+
+QueryMap.put("business_id", paramString);
+QueryMap.put("limit", paramInt2);
+QueryMap.put("offset", paramInt1);
+QueryMap.put("lang", paramLocale.getLanguage());
+
+//QueryMap.put("xref", null)
+QueryMap.put("time", String.valueOf(System.currentTimeMillis() / 1000L));
+QueryMap.put("nonce", String.valueOf(Base64Coder.encode(SecureRandom().nextBytes(byte[4])));
+xx=xx&xx=xx
+
+
+ObfuscatedQueryMap.put("location_lat", localLocation.getLatitude());
+ObfuscatedQueryMap.put("location_long", localLocation.getLongitude());
+ObfuscatedQueryMap.put("location_acc", localLocation.getAccuracy());
+ObfuscatedQueryMap.put("latitude", this.mLatitude);
+ObfuscatedQueryMap.put("longitude", this.mLongitude);
+
+
+efs = buildObfuscatedField(DeviceProfileMap, ObfuscatedQueryMap)
+      &xx=yy&xx=yy
+      mCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+      localSecretKeySpec = new SecretKeySpec(new BigInteger("3f2c593b7d469602af5a6fb718bc92cc", 16).toByteArray(), "AES");
+      localIvParameterSpec = new IvParameterSpec(new byte[16]);
+      mCipher.init(1, localSecretKeySpec, localIvParameterSpec);
+      String.valueOf(Base64Coder.encode(mCipher.doFinal(str1.getBytes())));
+
+
+signature = generateYelpSignature(toSortedUnencodedQueryString(), YelpWebStrings.getSecret())
+    item1 = buildDeviceInfoBlockForWebServices() + QueryMap
+    item2 = ObfuscatedQueryMap
+    item1.put("efs", buildObfuscatedField(item1, item2))
+    item1.keySet().remove["device"];
+
+    String[] arrayOfString ="/reviews"
+    for item in item1:
+        arrayOfString.append("xx=yy")
+        j += "xx=yy".length()
+
+    generateYelpSignature(arrayOfString, sSecret)
+    Mac localMac = Mac.getInstance("HmacSHA1");
+    localMac.init(new SecretKeySpec(arrayOfString.getBytes(), "HmacSHA1"));
+    "_" + String.valueOf(Base64Coder.encode(localMac.doFinal(sSecret.getBytes())));
+
+
+
+&xx=xx&xx=xx
+
+
+i = response.length()
+html = ""
+
+GZIPInputStream(html)
+localInputStreamReader = new InputStreamReader(GZIPInputStream(html), "utf-8");
+localCharArrayBuffer = new CharArrayBuffer(i);
+
+
+
+
+
+[1]result - efs: seg2y1/rP7CumyEJuxUVkEGfahzp7n7YFxMIC5a+fQ5GeZDU/geH6vNYRDBzGJ5Z8KpEbxeIc8Qo/b259Bv2nzNJsxn/Y2fMVgVOZf1j4Vdia5koGEbT8syQ59NvO7tA
+[1]result - decrype: device=2aa26d0ee4e42b20&location_acc=35.0&location_long=116.319634&location_lat=40.08767
+[1]result - encrype: seg2y1/rP7CumyEJuxUVkEGfahzp7n7YFxMIC5a+fQ5GeZDU/geH6vNYRDBzGJ5Z8KpEbxeIc8Qo/b259Bv2nzNJsxn/Y2fMVgVOZf1j4Vdia5koGEbT8syQ59NvO7tA
+
+[2]result - efs: seg2y1/rP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ==
+[2]result - decrype: device=2aa26d0ee4e42b20&latitude=NaN&longitude=NaN
+[2]result - encrype: seg2y1/rP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ==

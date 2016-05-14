@@ -1,0 +1,45 @@
+search city
+
+GET http://auto-api.yelp.com/suggest/locations?location=ka&time=1462872242&nonce=yQ2wSw%3D%3D&ywsid=Y3yWooClkisSbx32yJG5Ww&device_type=HUAWEI%2BHWNXT%2FHUAWEINXT-AL10&app_version=3.8.4&cc=US&lang=en&efs=seg2y1%2FrP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ%3D%3D&signature=_1NZ6HkXp0regvroNfJpGNI9FuP0%3D HTTP/1.1
+x-screen-scale: 2.5
+Accept-Encoding: gzip
+Host: auto-api.yelp.com
+Connection: Keep-Alive
+User-Agent: Version/1 Yelp/v3.8.4 Carrier/%E4%B8%AD%E5%9B%BD%E7%A7%BB%E5%8A%A8 Model/HWNXT OSBuild/HUAWEINXT-AL10 Android/6.0
+Cookie: __cfduid=dc7cba6fc5271b9cdeaa8e971b099135b1462852453; yuv=0M8PAzLmol_KzvrZUzk4tm4XzzpzKMw9lga44fb_tpvmshQ41F9yMM1xzd7ttdXORrIu3i8YntFCXssZxTX6-dNv4NoKzVH3; bse=8fb8260ffb45758344ee546aebd86e38; bip-sfo2=sticky_web112-r10-sfo2
+Cookie2: $Version=1
+Cookie: __cfduid=dc7cba6fc5271b9cdeaa8e971b099135b1462852453; yuv=0M8PAzLmol_KzvrZUzk4tm4XzzpzKMw9lga44fb_tpvmshQ41F9yMM1xzd7ttdXORrIu3i8YntFCXssZxTX6-dNv4NoKzVH3; bse=8fb8260ffb45758344ee546aebd86e38; bip-sfo2=sticky_web112-r10-sfo2
+Cookie2: $Version=1
+
+
+HTTP/1.1 200 OK
+Date: Tue, 10 May 2016 09:24:03 GMT
+Content-Type: text/plain; charset=utf-8
+Connection: keep-alive
+X-Node: api_com
+Cache-Control: private
+X-Node: web112-r10-sfo2
+Vary: Accept-Encoding,User-Agent
+X-Mode: ro
+X-Proxied: extlb7-r10-sfo2
+Server: cloudflare-nginx
+CF-RAY: 2a0c560239691e95-SJC
+Content-Length: 304
+
+{"message": {"text": "OK", "code": 0, "version": "1.1.1", "request_id": "080e8ed159f3ab15"}, "suggestions": ["Kansas City, MO", "Katy, TX", "Kailua, HI", "Kauai, HI", "Kapolei, HI", "Kailua-Kona, HI", "Kansas City, KS", "Kaneohe, HI", "Kalamazoo, MI"], "location": "ka", "request_id": "080e8ed159f3ab15"}
+
+
+
+
+
+
+location:ka
+time:1462872242
+nonce:yQ2wSw==
+ywsid:Y3yWooClkisSbx32yJG5Ww
+device_type:HUAWEI+HWNXT/HUAWEINXT-AL10
+app_version:3.8.4
+cc:US
+lang:en
+efs:seg2y1/rP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ==
+signature:_1NZ6HkXp0regvroNfJpGNI9FuP0=
