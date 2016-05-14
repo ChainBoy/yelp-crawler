@@ -177,8 +177,13 @@ class YelpCrawler(Process):
     def _get_comments(self, page):
         page_pq = pq(page)
         # store_location = comment_soup.find('address').text.strip()
-        store_location = "\n".join([i.strip() for i in page_pq(
-            ".map-box-address")[0].text_content().split("\n") if i.strip()])
+        try:
+            store_location = "\n".join([i.strip() for i in page_pq(
+                ".map-box-address")[0].text_content().split("\n") if i.strip()])
+        except IndexError, e:
+            print "why index error?"
+            with file("200-index-error.html", "w")as f:
+                f.write(page.encode("utf8"))
 
         # comments = comment_soup.findAll('div', {'class':'review review--with-sidebar'})
         comment_list = page_pq(
@@ -231,7 +236,7 @@ class YelpCrawler(Process):
         for req in self.threadpool.makeRequests(fun, params):
             self._thread_pool.putRequest(req)
 
-    def _download(self, url, params, try_num=5, timeout=30, *args, **kwargs):
+    def _download(self, url, params, try_num=10, timeout=30, *args, **kwargs):
         while try_num:
             try:
                 proxy = self._proxy_manager.get()
@@ -241,14 +246,14 @@ class YelpCrawler(Process):
                     proxies={"http": "http://"+proxy}
                 res = requests.get(url, params=params, proxies=proxies, timeout=timeout, *args, **kwargs)
                 if res.status_code in (503, 404, 403):
-                    print "[!%s]proxy download proxy: %s, url: %s" % (res.status_code, proxy, url)
+                    print "[!%s]proxy download proxy: %s, url: %s, proxy: %s" % (res.status_code, proxy, url, proxy)
                     with file(str(res.status_code) + ".html", "w")as f:
                         f.write(res.content)
                     self._proxy_manager.remove(proxy)
                     continue
                 return res
-            except (requests.exceptions, socket.timeout), e:
-                print "[%s]Download error: %s, url: %s" % (try_num, url, e)
+            except (requests.exceptions, requests.RequestException, socket.timeout), e:
+                print "[%s]Download error: %s, url: %s proxy: %s" % (try_num, e, url, proxy)
                 try_num -= 1
         return None
         # for i in self.store_id_set:

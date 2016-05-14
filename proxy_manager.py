@@ -18,9 +18,9 @@ class ProxySetting:
     thread_proxy_pool_min_size = 10
     proxy_sleep_time = 5
     proxy_black_sleep_time = 240
-    check_proxy = False
-    check_proxy_url = "http://club.jd.com/productpage/p-1034990345-s-0-t-1-p-200.html"
-    proxy_good_mark = "UserLevelName"
+    check_proxy = True
+    check_proxy_url = "http://www.yelp.com/hovercard/business?id=Dj8wUyvU2Y4Ejg7oXOo9YA"
+    proxy_good_mark = "Charlotte"
 
 
 class ProxyManager(object):
@@ -41,10 +41,14 @@ class ProxyManager(object):
 
     def update_proxy_pool(self):
         proxy_list = self._get_proxy_source()
+        print "get proxy from server count: %s, normal: waiting..." % len(proxy_list)
+        normal_count = 0
         for proxy in proxy_list:
             if self._check_proxy_connect(proxy):
                 self._proxy_all.add(proxy)
                 self._proxy_using.add(proxy)
+                normal_count += 1
+        print "get proxy from server count: %s, normal: %s" % (len(proxy_list), normal_count)
 
     def get(self, sleep_time=5):
         update_num = 0
@@ -62,6 +66,7 @@ class ProxyManager(object):
                             proxy, sleep_time=sleep_time or self._proxy_setting.proxy_sleep_time)
                         return proxy
                     except IndexError:
+                        print "why index error?"
                         return None
                 time.sleep(2)
                 continue
@@ -96,8 +101,9 @@ class ProxyManager(object):
         if new:
             return self.get()
 
-    def _get_proxy_source(self):
-        url = self._proxy_setting.proxy_server
+    def _get_proxy_source(self, count=500):
+        url = self._proxy_setting.proxy_server + "?count=%s" % count
+        print "proxy server:" + url
         proxy_list = []
         try:
             proxy_list_tmp = requests.get(url).content.split("\n")
@@ -115,13 +121,16 @@ class ProxyManager(object):
         if not self._proxy_setting.check_proxy:
             return True
         try:
-            res = requests.get(self._proxy_setting.check_proxy_url, timeout=30)
+            res = requests.get(self._proxy_setting.check_proxy_url, timeout=20)
             html = res.content
             if re.findall(self._proxy_setting.proxy_good_mark, html):
+                print "[OK] check proxy: %s" % proxy
                 return True
             else:
+                print "[NO] check proxy: %s, code: %s" % (proxy, res.status_code)
                 return False
         except Exception, e:
+            print "[Error] check proxy: %s, error: %s" % (proxy, e)
             return False
 
 
