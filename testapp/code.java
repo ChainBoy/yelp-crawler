@@ -8,35 +8,47 @@ import java.io.UnsupportedEncodingException;
 import sun.misc.*;
 
 
-public class YelpCrype
+public class Code
 {
     private static char map1[];
     private static byte map2[];
 
-    private YelpCrype()
+    private Code()
     {
 
     }
     public static void main (String[] args) throws java.lang.Exception
     {
-        String efs;
-        efs = "seg2y1/rP7CumyEJuxUVkEGfahzp7n7YFxMIC5a+fQ5GeZDU/geH6vNYRDBzGJ5Z8KpEbxeIc8Qo/b259Bv2nzNJsxn/Y2fMVgVOZf1j4Vdia5koGEbT8syQ59NvO7tA";
-        System.out.println("[1]result - efs: " + efs);
-        System.out.println("[1]result - decrype: " + decrype(efs));
-        System.out.println("[1]result - encrype: " + encrype(decrype(efs)));
-        System.out.println("");
-        efs = "seg2y1/rP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ==";
-        System.out.println("[2]result - efs: " + efs);
-        System.out.println("[2]result - decrype: " + decrype(efs));
-        System.out.println("[2]result - encrype: " + encrype(decrype(efs)));
-        System.out.println("");
-        System.out.println("===============sign==================");
-        String sb = new StringBuffer("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT").reverse().toString();
-        System.out.println("---- secret: " + new String(decode(sb)));
-        System.out.println("---- try HmacSHA1:" + "123");
-        System.out.println("---- result 1:" +  mac_decrype("123"));
-        System.out.println("---- result 2:" +  mac_decrype("123"));
-        System.out.println("---- result 3:" +  mac_decrype("123"));
+        if(args.length==0)
+            System.out.println("Error: no input text in arguments");
+        else if(args.length==1)
+        {
+            String str = args[0];
+            String result = encrype(str);
+            System.out.println("[Text]: " + str);
+            System.out.println("[OK]: [" + result + "]");
+        }
+        else{
+            String efs;
+            efs = "seg2y1/rP7CumyEJuxUVkEGfahzp7n7YFxMIC5a+fQ5GeZDU/geH6vNYRDBzGJ5Z8KpEbxeIc8Qo/b259Bv2nzNJsxn/Y2fMVgVOZf1j4Vdia5koGEbT8syQ59NvO7tA";
+            System.out.println("This is test ..");
+            System.out.println("[1]result - efs: " + efs);
+            System.out.println("[1]result - decrype: " + decrype(efs));
+            System.out.println("[1]result - encrype: " + encrype(decrype(efs)));
+            System.out.println("");
+            efs = "seg2y1/rP7CumyEJuxUVkC9dhrq8KC0McHFWD9FKQoD1RnQslSnPZiTZqqzJpebHdU3f33wPBWvuhgrT12OLgQ==";
+            System.out.println("[2]result - efs: " + efs);
+            System.out.println("[2]result - decrype: " + decrype(efs));
+            System.out.println("[2]result - encrype: " + encrype(decrype(efs)));
+            System.out.println("");
+            System.out.println("===============sign==================");
+            String sb = new StringBuffer("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT").reverse().toString();
+            System.out.println("---- secret: " + new String(decode(sb)));
+            System.out.println("---- try HmacSHA1:" + "123");
+            System.out.println("---- result 1:" +  mac_encrype("123"));
+            System.out.println("---- result 2:" +  mac_encrype("123"));
+            System.out.println("---- result 3:" +  mac_encrype("123"));
+        }
     }
     /*AES 解密*/
     public static String decrype(String str)throws java.lang.Exception

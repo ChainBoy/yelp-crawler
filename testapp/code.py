@@ -16,11 +16,15 @@ import random
 import hashlib
 import logging
 import threading
+import subprocess
 
 from Crypto.Cipher import AES
 
 version_history = ["8.8.0", "8.8.0-BETA2", "8.6.0", "8.5.1", "8.4.1", "8.3.2", "8.2.0", "8.1.1", "7.12.0", "7.10.1", "7.9.0", "7.6.1", "7.5.2", "7.3.1", "7.3.0", "7.2.2", "7.2.1", "7.2.0", "7.1.0", "7.1.0-BETA2", "7.0.3", "7.0.2", "7.0.1", "7.0.0", "7.0.0-BETA5", "6.11.1",
                    "6.11.0", "6.10.1", "6.9.1", "6.8.1", "6.8.0", "6.7.0", "6.6.0", "6.5.2", "6.1.0", "5.12.2", "5.9.0", "5.8.1", "5.7.0", "5.6.1", "5.5.1", "5.4.0", "5.3.2", "5.3.1", "5.2.0", "5.1.0", "5.0.4", "5.0.2", "5.0.1", "5.0.0", "4.4.1", "4.4.0", "4.2.1", "3.9.2", "3.9.0", "3.8.2", "3.8.0"]
+
+char_list = [chr(i) for i in range(97, 123)] + range(10)
+
 net_type_list = ["Verizon", "Sprint", "at&t", "AT&T", "NTT DoCoMo",
                  "T-Mobile", "Vodafone", "Orange", "KDDI", u"中国电信", u"中国移动", u"中国联通"]
 
@@ -114,7 +118,8 @@ class PhoneManager():
         return phone.phone_brand
 
     def _android_id(self, phone):
-        return "2aa26d0ee4e42b20"
+        return "".join([str(random.choice(char_list)) for i in range(16)])
+        # return "2aa26d0ee4e42b20"
 
 
 class Task():
@@ -130,14 +135,15 @@ class Task():
 #_sYwsid = decode("==wdk1ybXdVVQhHSD1meyEGTiJlMtFzU");
 #_sSecret = decode("==wNjVSKmd2OpcjSTZWMksXVJ1yIFF2IsgGV");
 
-ywsid = base64.decodestring("==wdXVzRKlnMzgnYTNXarx2Qv92V5NTW"[::-1])
-secret = base64.decodestring("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT"[::-1])
-encrypt_key = "3f2c593b7d469602af5a6fb718bc92cc"
+# ywsid = base64.decodestring("==wdXVzRKlnMzgnYTNXarx2Qv92V5NTW"[::-1])
+# secret = base64.decodestring("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT"[::-1])
+# encrypt_key = "3f2c593b7d469602af5a6fb718bc92cc"
 
 
 class QueryReviews(threading.Thread):
     ywsid = base64.decodestring("==wdXVzRKlnMzgnYTNXarx2Qv92V5NTW"[::-1])
-    secret = base64.decodestring("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT"[::-1]) # "NFlCej.+<2VS;u=@5n!AJZlN6"
+    secret = base64.decodestring("==gNOxmWKFUIuVDQ9U3OTZlM8siLqV2QsZkT"[
+                                 ::-1])  # "NFlCej.+<2VS;u=@5n!AJZlN6"
     encrypt_key = "3f2c593b7d469602af5a6fb718bc92cc"
 
     def __init__(self, phone_manager, task_queue, flush_device=False):
@@ -165,25 +171,25 @@ class QueryReviews(threading.Thread):
         url = self._build_url()
         print "-------------------"
         print url
-        print "-------------------"
+        print "==================="
 
     def _build_url(self):
         string = ""
         for k, v in self._query_map.items():
-            string += "%s=%s&" % (k, urllib.quote(str(v)))
+            string += "%s=%s&" % (k, urllib.quote(str(v)).replace("/", "%2F"))
 
         for k, v in self._device_profile_map.items():
             if k in self._query_map.keys() or k in self._obfuscated_params:
                 continue
-            string += "%s=%s&" % (k, urllib.quote(str(v)))
+            string += "%s=%s&" % (k, urllib.quote(str(v)).replace("/", "%2F"))
 
         efs = self.entry_obfuscate(self._device_profile_map)
         print "[-- efs] == ", efs
-        string += "efs=" + urllib.quote(efs) + "&"
+        string += "efs=" + urllib.quote(efs).replace("/", "%2F") + "&"
 
         sign = self.generate_sign()
         print "[-- sign] == ", sign
-        string += "signature=" + urllib.quote(sign) + "&"
+        string += "signature=" + urllib.quote(sign).replace("/", "%2F")
         return "http://auto-api.yelp.com/reviews?" + string
 
     def _build_device(self, Phone=None, flush=False):
@@ -194,7 +200,7 @@ class QueryReviews(threading.Thread):
         self._device_profile_map = {
             "ywsid": QueryReviews.ywsid,
             "device": Phone.android_id,
-            "device_type": Phone.phone_brand + "+" + Phone.device_name + "/" + Phone.device_id,
+            "device_type": (Phone.phone_brand + "+" + Phone.device_name + "/" + Phone.device_id),
             "app_version": Phone.app_version,
             "cc": "US",
             "lang": "en"
@@ -206,7 +212,7 @@ class QueryReviews(threading.Thread):
         self._query_map = {
             "business_id": business_id,
             "limit": 50,
-            "offset": (page_index - 1) * 50,
+            "offset": (page_index) * 50,
             "lang": "en",
             # "xref": "",
             "time": int(time.time()),
@@ -218,8 +224,8 @@ class QueryReviews(threading.Thread):
             "location_lat": "29.6183721",
             "location_long": "-95.6387007",
             "location_acc": "8",
-            "latitude": "29.6183721",
-            "longitude": "-95.6387007"
+            # "latitude": "29.6183721",
+            # "longitude": "-95.6387007"
         }
         # self._obfuscated_query_map = {}
 
@@ -234,17 +240,28 @@ class QueryReviews(threading.Thread):
         # key = str(int(self.encrypt_key, 16))
         # TODO: 这里需要注意, 跟java实现方式不太相似，可能不正确
         string = string[:-1] if string and string[-1] else string
-        string = "device=2aa26d0ee4e42b20&latitude=NaN&longitude=NaN"
+        print "entry string: ", string
+        # string = "device=2aa26d0ee4e42b20&latitude=NaN&longitude=NaN"
+        # string = "device=2aa26d0ee4e42b20&location_acc=35.0&location_long=116.319634&location_lat=40.08767"
+        cmd = 'java Code "%s"' % string
+        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        sub.wait()
+        out_str = sub.stdout.read().strip()
+        if string in out_str and "[OK]" in out_str:
+            data = out_str.split("\n")[-1].split(":")[-1].strip()[1:-1]
+        else:
+            data = ""
+        return data
 
-        key = self.encrypt_key
-        iv = "\x00" * 16
-        BS = AES.block_size
-        pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
-        print "SSSSSSTR=== ", string
-        print "PPPPPPAD=== ", pad(string)
-        cipher = AES.new(key, AES.MODE_CBC, IV=iv)
-        # data = base64.encodestring((cipher.encrypt(string))).rstrip()
-        data = base64.encodestring((cipher.encrypt(pad(string)))).rstrip()
+        # key = self.encrypt_key
+        # iv = "\x00" * 16
+        # BS = AES.block_size
+        # pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+        # print "SSSSSSTR=== ", string
+        # print "PPPPPPAD=== ", pad(string)
+        # cipher = AES.new(key, AES.MODE_CBC, IV=iv)
+        # # data = base64.encodestring((cipher.encrypt(string))).rstrip()
+        # data = base64.encodestring((cipher.encrypt(pad(string)))).rstrip()
         return data
 
         # mCipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -263,19 +280,20 @@ class QueryReviews(threading.Thread):
             except:
                 pass
         string = "/reviews"
+        params_list = []
         for k, v in map_1.items():
-            string += "%s=%s" % (k, urllib.quote(str(v)))
+            params_list.append("%s=%s" % (k, urllib.quote(str(v))))
+        params_list.sort()
+        string += "".join(params_list).replace("/", "%2F")
+        # string = "123"
 
         # Mac localMac = Mac.getInstance("HmacSHA1");
         # localMac.init(new SecretKeySpec(query_string.getBytes(), "HmacSHA1"));
         # "_" + String.valueOf(Base64Coder.encode(localMac.doFinal(secret.getBytes())));
-        string = "123"
-        print "[[[[[[[[[[[[[[ text: ", string
-        print "[[[[[[[[[[[[[[ key", self.secret
-
+        print "sign text: ", string
         data = hmac.new(self.secret, string, hashlib.sha1).digest().encode(
             'base64').rstrip()
-        return data
+        return "_" + data
 
 
 def test():
