@@ -156,7 +156,7 @@ class QueryReviews(threading.Thread):
         self._device_profile_map = {}
         self._query_map = {}
         self._obfuscated_query_map = {}
-        self._user_agent = "Version/1 Yelp/v3.8.4 Carrier/%E4%B8%AD%E5%9B%BD%E7%A7%BB%E5%8A%A8 Model/HWNXT OSBuild/HUAWEINXT-AL10 Android/6.0"
+        self._user_agent = u"Version/1 Yelp/v3.8.4 Carrier/中国移动 Model/HWNXT OSBuild/HUAWEINXT-AL10 Android/6.0"
 
     def run(self):
         while not self._task_queue.empty():
@@ -176,20 +176,20 @@ class QueryReviews(threading.Thread):
     def _build_url(self):
         string = ""
         for k, v in self._query_map.items():
-            string += "%s=%s&" % (k, urllib.quote(str(v)).replace("/", "%2F"))
+            string += "%s=%s&" % (k, urllib.quote(str(v)))
 
         for k, v in self._device_profile_map.items():
             if k in self._query_map.keys() or k in self._obfuscated_params:
                 continue
-            string += "%s=%s&" % (k, urllib.quote(str(v)).replace("/", "%2F"))
+            string += "%s=%s&" % (k, urllib.quote(str(v)))
 
         efs = self.entry_obfuscate(self._device_profile_map)
         print "[-- efs] == ", efs
-        string += "efs=" + urllib.quote(efs).replace("/", "%2F") + "&"
+        string += "efs=" + urllib.quote(efs) + "&"
 
         sign = self.generate_sign()
-        print "[-- sign] == ", sign
-        string += "signature=" + urllib.quote(sign).replace("/", "%2F")
+        string += "signature=" + urllib.quote(sign)
+        #string += "signature=" + urllib.quote(sign)#.replace("/", "%2F")
         return "http://auto-api.yelp.com/reviews?" + string
 
     def _build_device(self, Phone=None, flush=False):
@@ -282,9 +282,9 @@ class QueryReviews(threading.Thread):
         string = "/reviews"
         params_list = []
         for k, v in map_1.items():
-            params_list.append("%s=%s" % (k, urllib.quote(str(v))))
+            params_list.append("%s=%s" % (k, str(v)))
         params_list.sort()
-        string += "".join(params_list).replace("/", "%2F")
+        string += "".join(params_list)
         # string = "123"
 
         # Mac localMac = Mac.getInstance("HmacSHA1");
@@ -300,7 +300,7 @@ def test():
     task_queue = Queue.Queue()
     for i in range(5):
         task = Task()
-        task.business_id = "id=vaMGN4lUJn4zOXkn2icIIQ"
+        task.business_id = "vaMGN4lUJn4zOXkn2icIIQ"
         task.page_index = i
         task_queue.put(task)
     phone_manager = PhoneManager()
