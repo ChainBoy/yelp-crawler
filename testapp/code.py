@@ -123,8 +123,16 @@ class PhoneManager():
 
 
 class Task():
-    business_id = "id=arFjcK63ITZ6RNyGau65xA"
+    _type = "query_reviews"
+    uri = "/reviews"
+    # search_shops, search_citys, search_stores
+    business_id = "arFjcK63ITZ6RNyGau65xA"
     page_index = 0
+    lat = None
+    lang = None
+    acc = None
+    term = None
+    location = None
 
 # user_agent = "Version/1 Yelp/v3.8.4 Carrier/%E4%B8%AD%E5%9B%BD%E7%A7%BB%E5%8A%A8 Model/HWNXT OSBuild/HUAWEINXT-AL10 Android/6.0"
 
@@ -161,19 +169,66 @@ class QueryReviews(threading.Thread):
     def run(self):
         while not self._task_queue.empty():
             task = self._task_queue.get()
-            self._query_reviews(task)
+            method_name = "_" + task._type
+            if not hasattr(self, method_name):
+                print "undefined method: %s" % task._type
+                continue
+            getattr(self, method_name)(task)
+            # self._query_reviews(task)
             self._task_queue.task_done()
 
     def _query_reviews(self, task):
         self._build_device(flush=self._flush_device_flag)
-        self._build_query(task.business_id, task.page_index)
-        self._build_obfuscated()
-        url = self._build_url()
-        print "-------------------"
-        print url
-        print "==================="
 
-    def _build_url(self):
+        self._build_query("business_id", task.business_id)
+        self._build_query("offset", task.page_index * 50)
+        self._build_query("limit", 50)
+        self._build_obfuscated("location_lat", task.lat)
+        self._build_obfuscated("location_long", task.lang)
+        self._build_obfuscated("location_acc", task.acc)
+
+        url = self._build_url()
+        print "------------- search reviews -------------"
+        print url
+        print "=========================================="
+
+    def _search_shops(self, task):
+        "搜索商品名"
+        self._build_device(flush=self._flush_device_flag)
+
+        self._build_query("term", task.term)
+        url = self._build_url(task.uri)
+        print "------------- search  shops -------------"
+        print url
+        print "========================================="
+    def _search_citys(self, task):
+        "搜索城市"
+        "搜索商品名"
+        self._build_device(flush=self._flush_device_flag)
+
+        self._build_query("location", task.location)
+        url = self._build_url(task.uri)
+        print "------------- search  citys -------------"
+        print url
+        print "========================================="
+
+    def _search_stores(self, task):
+        "搜索商店列表"
+        self._build_device(flush=self._flush_device_flag)
+
+        self._build_query("term" ,task.term )
+        self._build_query("location" ,task.location )
+        self._build_query("limit" ,task.limit )
+        self._build_query("offset", task.offset)
+        self._build_query("mode" ,task.mode )
+        self._build_query("fmode", task.fmode)
+
+        url = self._build_url(task.uri)
+        print "------------- search stores -------------"
+        print url
+        print "========================================="
+
+    def _build_url(self, uri="/reviews"):
         string = ""
         for k, v in self._query_map.items():
             string += "%s=%s&" % (k, urllib.quote(str(v)))
@@ -187,10 +242,10 @@ class QueryReviews(threading.Thread):
         print "[-- efs] == ", efs
         string += "efs=" + urllib.quote(efs) + "&"
 
-        sign = self.generate_sign()
+        sign = self.generate_sign(uri)
         string += "signature=" + urllib.quote(sign)
-        #string += "signature=" + urllib.quote(sign)#.replace("/", "%2F")
-        return "http://auto-api.yelp.com/reviews?" + string
+        # string += "signature=" + urllib.quote(sign)#.replace("/", "%2F")
+        return "http://auto-api.yelp.com" + uri + "?" + string
 
     def _build_device(self, Phone=None, flush=False):
         if not Phone:
@@ -208,26 +263,26 @@ class QueryReviews(threading.Thread):
         # print Phone._dict()
         self._user_agent = "Version/1 Yelp/v%(app_version)s Carrier/%(net_type)s Model/%(device_name)s OSBuild/%(device_id)s Android/%(android_version)s" % Phone._dict()
 
-    def _build_query(self, business_id, page_index):
-        self._query_map = {
-            "business_id": business_id,
-            "limit": 50,
-            "offset": (page_index) * 50,
-            "lang": "en",
-            # "xref": "",
-            "time": int(time.time()),
-            "nonce": base64.b64encode(os.urandom(4)),
-        }
+    def _build_query(self, key, value):
+        if not self._query_map:
+            self._query_map = {
+                "lang": "en",
+                # "xref": "",
+                "time": int(time.time()),
+                "nonce": base64.b64encode(os.urandom(4)),
+            }
+        self._query_map[key] = value
 
-    def _build_obfuscated(self):
-        self._obfuscated_query_map = {
-            "location_lat": "29.6183721",
-            "location_long": "-95.6387007",
-            "location_acc": "8",
-            # "latitude": "29.6183721",
-            # "longitude": "-95.6387007"
-        }
-        # self._obfuscated_query_map = {}
+    def _build_obfuscated(self, key, value):
+        if not self._obfuscated_query_map:
+            self._obfuscated_query_map = {
+                # "location_lat": "29.6183721",
+                # "location_long": "-95.6387007",
+                # "location_acc": "8",
+                # "latitude": "29.6183721",
+                # "longitude": "-95.6387007"
+            }
+        self._obfuscated_query_map[key] = value
 
     def entry_obfuscate(self, map_1):
         map_2 = dict(self._obfuscated_query_map)
@@ -270,7 +325,7 @@ class QueryReviews(threading.Thread):
         # mCipher.init(1, localSecretKeySpec, localIvParameterSpec);
         # String.valueOf(Base64Coder.encode(mCipher.doFinal(str1.getBytes())));
 
-    def generate_sign(self):
+    def generate_sign(self, uri="/reviews"):
         map_1 = dict(self._device_profile_map)
         map_1.update(self._query_map)
         map_1["efs"] = self.entry_obfuscate(map_1)
@@ -279,7 +334,7 @@ class QueryReviews(threading.Thread):
                 del map_1[k]
             except:
                 pass
-        string = "/reviews"
+        string = uri
         params_list = []
         for k, v in map_1.items():
             params_list.append("%s=%s" % (k, str(v)))
@@ -295,6 +350,10 @@ class QueryReviews(threading.Thread):
             'base64').rstrip()
         return "_" + data
 
+# "location_lat": "29.6183721",
+# "location_long": "-95.6387007",
+# "location_acc": "8",
+
 
 def test():
     task_queue = Queue.Queue()
@@ -302,6 +361,11 @@ def test():
         task = Task()
         task.business_id = "vaMGN4lUJn4zOXkn2icIIQ"
         task.page_index = i
+        task._type = "query_reviews"
+        task.lat = "29.6183721"
+        task.lang = "-95.6387007"
+        task.acc = "8"
+
         task_queue.put(task)
     phone_manager = PhoneManager()
     threads = []
@@ -313,6 +377,53 @@ def test():
     for i in threads:
         i.join()
 
+def test_search_shops():
+    print "test search shop: [kfc] ..."
+    phone_manager = PhoneManager()
+    task_queue = Queue.Queue()
+
+    task = Task()
+    task.term = "kfc"
+    task._type = "search_shops"
+    task.uri = "/suggest"
+
+    task_queue.put(task)
+    QueryReviews(phone_manager, task_queue, flush_device=False).start()
+
+def test_search_citys():
+    print "test search city: [ka] ..."
+    phone_manager = PhoneManager()
+    task_queue = Queue.Queue()
+
+    task = Task()
+    task.location = "ka"
+    task._type = "search_citys"
+    task.uri = "/suggest/locations"
+
+    task_queue.put(task)
+    QueryReviews(phone_manager, task_queue, flush_device=False).start()
+
+def test_search_stores():
+    print "test search stores: [Katy, TX][kfc drive thru] ..."
+    phone_manager = PhoneManager()
+    task_queue = Queue.Queue()
+
+    task = Task()
+    task.term = "kfc drive thru"
+    task.location = "Katy, TX"
+    task.limit = 20
+    task.offset= 0
+    task.mode = 1
+    task.fmode=0
+
+
+    task._type = "search_stores"
+    task.uri = "/search"
+
+    task_queue.put(task)
+    QueryReviews(phone_manager, task_queue, flush_device=False).start()
 
 if __name__ == '__main__':
-    test()
+    test_search_shops()
+    test_search_citys()
+    test_search_stores()
