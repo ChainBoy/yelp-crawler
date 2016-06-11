@@ -17,6 +17,9 @@ import hashlib
 import logging
 import threading
 import subprocess
+import requests
+
+downloader = request.session()
 
 from Crypto.Cipher import AES
 
@@ -173,9 +176,11 @@ class QueryReviews(threading.Thread):
             if not hasattr(self, method_name):
                 print "undefined method: %s" % task._type
                 continue
-            getattr(self, method_name)(task)
+            url = getattr(self, method_name)(task)
             # self._query_reviews(task)
             self._task_queue.task_done()
+
+
 
     def _query_reviews(self, task):
         self._build_device(flush=self._flush_device_flag)
@@ -191,6 +196,7 @@ class QueryReviews(threading.Thread):
         print "------------- search reviews -------------"
         print url
         print "=========================================="
+        return url
 
     def _search_shops(self, task):
         "搜索商品名"
@@ -211,6 +217,7 @@ class QueryReviews(threading.Thread):
         print "------------- search  citys -------------"
         print url
         print "========================================="
+        return url
 
     def _search_stores(self, task):
         "搜索商店列表"
@@ -227,6 +234,7 @@ class QueryReviews(threading.Thread):
         print "------------- search stores -------------"
         print url
         print "========================================="
+        return url
 
     def _build_url(self, uri="/reviews"):
         string = ""
@@ -424,6 +432,7 @@ def test_search_stores():
     QueryReviews(phone_manager, task_queue, flush_device=False).start()
 
 if __name__ == '__main__':
-    test_search_shops()
-    test_search_citys()
-    test_search_stores()
+    # test_search_shops()
+    # test_search_citys()
+    # test_search_stores()
+    pass
